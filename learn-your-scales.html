@@ -1,0 +1,103 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  </head>
+  <body>
+    <div id="learn-scales">- - -</div>
+
+    <!-- see https://jsfiddle.net/8tdp78uh/1/ -->
+
+    <script>
+    /* =========================================================================== 
+    *
+    * Show 3 random scales that you need to learn
+    * A version of the code below can be found at https://jsfiddle.net/8tdp78uh/1/
+    *
+    * ==========================================================================*/
+    function createCookie(name,value,days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days*24*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + value + expires + "; path=/";
+    }
+
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+    function chooseScales() {
+        var keys = "A Bb B C C# D Eb E F F# G G#".split(" ");
+        // shuffle and take the first few to get a random selection
+        keys.sort(function() {return 0.5 - Math.random()});
+        var out = " ";
+        for (i=0;i<3;i++) {
+            out += keys[i] + " ";
+        }
+        return out;
+    }
+    function rememberOrCreateScales() {
+        scales = readCookie("scales");
+        if (scales == null) {
+            scales = chooseScales();
+            createCookie("scales", scales, 7);
+        }
+        return scales;
+    }
+    function escapeSharpFlat(str) {
+        // https://www.johndcook.com/blog/2009/03/16/sharps-and-flats-in-html/
+        str = str.replace(/([A-G])#/g, "$1&#x266f;");  // Sharp
+        str = str.replace(/([A-G])b/g, "$1&#x266d;");  // Flat
+        str = str.replace(/([A-G])=/g, "$1&#x266e;");  // Natural
+        return str
+    }
+    function getStyleFromUrl() {
+        // Fetch CSS from the the # part of the URL
+        style = ['serif', '16px', false]; // [font-family, font-size, show-help]
+
+        var regex = new RegExp("\\?(.*)")
+        var match = regex.exec(location.href);
+        var css_regex = new RegExp('\\b([a-z-]+):\\s*([0-9pxtrue]+).*');
+        if (match && match[1]) {
+            d =  css_regex.exec(match[1]);
+            if (d && d[1] == "font-size") {
+                style[1] = d[2];
+            }
+            if (d && d[1] == "help" && d[2] == 'true') {
+                style[2] = true
+            }
+            console.log(style);
+        }
+        return style;
+        // TODO: ONLY change the font-size. Don't bother making anything else confgiurable.
+    }
+    function createHtmlTag(scales) {
+        // scales is a space-separated list
+        scales = scales.replace(/ /g, " &nbsp; &nbsp; ");
+        [font_family, font_size, show_help] = getStyleFromUrl();
+        style = 'font-family: ' + font_family + ';font-size:' + font_size + ';';
+        scales_html = '<span style="' + style + '">' + scales + '</span>';
+        // console.log(scales_html);
+        if (show_help) {
+            scales_html += "<div><br>"
+                + "Displays 3 random keys for you to practice with. "
+                + "Each key is remembered in a web cookie for a week. "
+                + "You can change the font-size by appending '?font-size:NUMBERpx'."
+                + "</div>";
+        }
+        return scales_html;
+    }
+    scales = escapeSharpFlat(rememberOrCreateScales())
+    document.getElementById('learn-scales').innerHTML = createHtmlTag(scales);
+    </script>
+  
+
+</body></html>
